@@ -63,7 +63,7 @@ public class Courier {
         this.pendingDeliveriesQuantity++;
     }
 
-    public void fulfull(UUID deliveryId) {
+    public void fulfill(UUID deliveryId) {
         AssignedDelivery delivery = this.pendingDeliveries.stream().filter(
                 d -> d.getId().equals(deliveryId)
         ).findFirst().orElseThrow();
@@ -73,4 +73,5 @@ public class Courier {
         this.fulfilledDeliveriesQuantity++;
         this.lastFulfilledDeliveryAt = OffsetDateTime.now();
     }
+
 }

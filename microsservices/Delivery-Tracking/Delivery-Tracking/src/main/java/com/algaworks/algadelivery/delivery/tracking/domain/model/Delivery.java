@@ -1,5 +1,8 @@
 package com.algaworks.algadelivery.delivery.tracking.domain.model;
 
+import com.algaworks.algadelivery.delivery.tracking.domain.event.DeliveryFulfilledEvent;
+import com.algaworks.algadelivery.delivery.tracking.domain.event.DeliveryPickedUpEvent;
+import com.algaworks.algadelivery.delivery.tracking.domain.event.DeliveryPlacedEvent;
 import com.algaworks.algadelivery.delivery.tracking.domain.exception.DomainException;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -16,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -27,10 +31,10 @@ import java.util.UUID;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Setter(AccessLevel.PRIVATE)
 @Getter
-public class Delivery {
+public class Delivery extends AbstractAggregateRoot<Delivery> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -118,6 +122,7 @@ public class Delivery {
         verifyIfCanBePlaced();
         this.changeStatusTo(DeliveryStatus.WAITING_FOR_COURIER);
         this.setPlacedAt(OffsetDateTime.now());
+        super.registerEvent(new DeliveryPlacedEvent(this.getPlacedAt(), this.getId()));
     }
 
     public void editPreparationDetails(PreparationDetails details) {
@@ -163,12 +168,14 @@ public class Delivery {
     public void markAsDelivered() {
         this.changeStatusTo(DeliveryStatus.DELIVERED);
         this.setFulfilledAt(OffsetDateTime.now());
+        super.registerEvent(new DeliveryFulfilledEvent(this.getFulfilledAt(), this.getId()));
     }
 
     public void pickUp(UUID courierId) {
         this.setCourierId(courierId);
         this.changeStatusTo(DeliveryStatus.IN_TRANSIT);
         this.setAssignedAt(OffsetDateTime.now());
+        super.registerEvent(new DeliveryPickedUpEvent(this.getAssignedAt(), this.getId()));
     }
 
     private void calculateTotalItems() {
