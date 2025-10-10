@@ -1,5 +1,6 @@
 package com.algaworks.algadelivery.delivery.tracking.infrastructure.http.client;
 
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -11,9 +12,17 @@ public class CourierApiClientConfig {
 
     // estudar melhor isso
 
+    // client side service discovery e balanceador de carga
+
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder loadBalancedRestClientBuilder() {
+        return RestClient.builder();
+    }
+
     @Bean
     public CourierApiClient courierApiClient(RestClient.Builder builder) {
-        RestClient restClient = builder.baseUrl("http://localhost:8081").build();
+        RestClient restClient = builder.baseUrl("http://courier-management").build();
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
         HttpServiceProxyFactory proxyFactory = HttpServiceProxyFactory.builderFor(adapter).build();
         return proxyFactory.createClient(CourierApiClient.class);
