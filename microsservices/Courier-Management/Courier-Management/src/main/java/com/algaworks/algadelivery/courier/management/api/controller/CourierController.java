@@ -10,6 +10,7 @@ import com.algaworks.algadelivery.courier.management.domain.service.CourierRegis
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.UUID;
 
 @RestController
@@ -63,8 +65,19 @@ public class CourierController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @SneakyThrows
     @PostMapping("/payout-calculation")
-    public CourierPayoutResultModel calculate(@RequestBody CourierPayoutCalculationInput input) {
+    public CourierPayoutResultModel calculate(@RequestBody CourierPayoutCalculationInput input){
+
+        log.info("Calculate courier payout calculation");
+
+        if(Math.random() < 0.8) {
+            throw new RuntimeException();
+        }
+
+        int millis = new Random().nextInt(400);
+        Thread.sleep(millis);
+
         BigDecimal payoutFee = courierPayoutService.calculate(input.getDistanceInKm());
         return new CourierPayoutResultModel(payoutFee);
     }
